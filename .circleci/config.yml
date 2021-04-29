@@ -1,0 +1,66 @@
+version: 2.1
+
+executors:
+  default:
+    docker:
+      - image: circleci/php:7.4-fpm
+
+orbs:
+  aws-ecr: circleci/aws-ecr@7.0.0
+  aws-ecs: circleci/aws-ecs@2.1.0
+  docker: circleci/docker@1.5.0
+  slack: circleci/slack@4.3.1
+
+commands:
+  notify_slack_pass:
+    steps:
+      - slack/notify:
+          event: pass
+          template: basic_success_1
+
+  notify_slack_fail:
+    steps:
+      - slack/notify:
+          event: fail
+          mentions: '@here'
+          template: basic_fail_1
+
+  update_service_after_build_and_push_image:
+    steps:
+      - docker/build:
+          dockerfile: docker/composer/Dockerfile
+          image: '${APP_PREFIX}/composer'
+          tag: latest
+
+      - aws-ecr/build-and-push-image:
+          account-url: AWS_ECR_ACCOUNT_URL_ENV_VAR_NAME
+          aws-access-key-id: ACCESS_KEY_ID_ENV_VAR_NAME
+          aws-secret-access-key: SECRET_ACCESS_KEY_ENV_VAR_NAME
+          dockerfile: docker/laravel/Dockerfile
+          region: AWS_REGION_ENV_VAR_NAME
+          repo: '${APP_PREFIX}/laravel'
+          tag: "${CIRCLE_SHA1}"
+
+      - aws-ecs/update-service:
+          cluster-name: '${APP_PREFIX}-cluster'
+          container-image-name-updates: 'container=laravel,image-and-tag=${AWS_ECR_ACCOUNT_URL_ENV_VAR_NAME}/${APP_PREFIX}/laravel:${CIRCLE_SHA1}'
+          family: '${APP_PREFIX}-service'
+
+jobs:
+  deploy:
+    executor: default
+    steps:
+      - setup_remote_docker
+      - checkout
+      - update_service_after_build_and_push_image
+      - notify_slack_pass
+      - notify_slack_fail
+
+workflows:
+  version: 2
+  release-workflow:
+    jobs:
+      - deploy:
+          filters:
+            branches:
+              only: main

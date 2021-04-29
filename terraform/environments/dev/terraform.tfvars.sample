@@ -1,0 +1,92 @@
+# AWS BASE CONFIG #
+aws_base_config = {
+  region      = ""
+  profile     = ""
+  account_id  = ""
+}
+
+# Application Name #
+app_name = ""
+
+# Application Domain Name #
+domain_name = ""
+
+# ENV #
+env = ""
+
+# VPC #
+vpc_cidr_block = "10.0.0.0/16"
+
+# subnet #
+subnet_cidr_block = {
+  public = {
+    ap-northeast-1a = ""
+    ap-northeast-1c = ""
+    ap-northeast-1d = ""
+  }
+  private = {
+    ap-northeast-1a = ""
+    ap-northeast-1c = ""
+    ap-northeast-1d = ""
+  }
+}
+
+# security_group_conf #
+sg_conf = {
+  alb = {
+    description = "SecurityGroup for application load balancer"
+    ingress = {
+      port = [80, 443]
+      protocol = "tcp"
+      cidr_block = ["0.0.0.0/0"]
+    }
+    egress = {
+      port = 0
+      protocol = "-1"
+      cidr_block = ["0.0.0.0/0"]
+    }
+  }
+  private_link = {
+    description = "SecurityGroup for application load balancer"
+    ingress = {
+      port = 443
+      protocol = "tcp"
+      cidr_block = ["10.0.0.0/16"] # Same as vpc_cidr_block.
+    }
+    egress = {
+      port = 0
+      protocol = "-1"
+      cidr_block = ["0.0.0.0/0"]
+    }
+  }
+}
+
+# RDS #
+rds_conf = {
+  parameter_group = {
+    family    = ""
+    parameter = [
+      {
+        name  = "character_set_server"
+        val   = "utf8"
+      },
+      {
+        name  = "character_set_client"
+        val   = "utf8"
+      }
+    ]
+  }
+  option_group = {
+    engine_name           = ""
+    major_engine_version  = ""
+  }
+  rds = {
+    engine          = ""
+    engine_version  = ""
+    instance_class  = ""
+  }
+  user_conf = {
+    username = ""
+    password = ""
+  }
+}
