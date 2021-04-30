@@ -1,4 +1,5 @@
 # LaraGate
+![Laragate](terraform/environments/dev/files/laragate.jpeg)
 
 ## setup
 1. Build the docker image in the local environment.
